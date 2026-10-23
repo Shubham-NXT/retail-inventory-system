@@ -20,7 +20,7 @@ Designed for college academic evaluation (**FA 1 & FA 2**), implementing clean l
 ## ✨ Features (FA 1 & FA 2)
 
 ### 🔹 FA 1: Foundation & Core Inventory Management
-- **Product Catalog & Dashboard:** Displays all products in a structured Bootstrap table showing SKU, Product Name, Category, Unit Price (₹), Quantity, Total Value (₹), and Stock Status.
+- **Product Catalog & Dashboard:** Displays all products in a structured Bootstrap table showing SKU, Product Name, Category, Unit Price (₹), Quantity (Packets), Total Value (₹), and Stock Status.
 - **Dynamic Inventory Valuation:** Computes `getTotalValue()` (`unitPrice * quantity`) on the fly, eliminating redundant database storage.
 - **Stock Status Badges:** Visual indicators highlighting stock health:
   - 🟢 **In Stock** badge when healthy.
@@ -29,6 +29,10 @@ Designed for college academic evaluation (**FA 1 & FA 2**), implementing clean l
 - **Database Auto-Provisioning:** Auto-creates database (`createDatabaseIfNotExist=true`) and updates schema (`ddl-auto=update`).
 
 ### 🔹 FA 2: OOP Principles, Advanced Modules & Robustness
+- **Flexible Bundles & Packets System:**
+  - Configurable ratio for every product (e.g. 1 Bundle = 10 Packets, 12 Packets, 24 Packets, or 1 if sold loose).
+  - Automatically computes full bundles count (`quantity / packetsPerBundle`) and loose packets (`quantity % packetsPerBundle`).
+  - Displays formatted stock (e.g. `45 Packets (4 Bdl + 5 Loose)`) and bundle price (`unitPrice * packetsPerBundle`).
 - **Object-Oriented Programming (OOP) Architecture:**
   - **Inheritance:** `@MappedSuperclass BaseItem` defines common retail attributes (`productName`, `skuCode`, `category`). `Product` extends `BaseItem` using constructor chaining (`super(...)`).
   - **Encapsulation:** Private attributes in `Product` (`id`, `unitPrice`, `quantity`, `reorderLevel`) accessed via public getters, setters, and business helper methods (`getTotalValue()`, `isLowStock()`).

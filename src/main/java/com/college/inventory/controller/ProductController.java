@@ -59,8 +59,16 @@ public class ProductController {
         if (product.getUnitPrice() == null || product.getUnitPrice() <= 0) {
             return "Unit Price must be greater than 0 (₹).";
         }
+        // Default packetsPerBundle to 1 if left empty or 0 (can be configured now or later)
+        if (product.getPacketsPerBundle() == null || product.getPacketsPerBundle() <= 0) {
+            product.setPacketsPerBundle(1);
+        }
+
+        // Calculate total stock from input bundles and loose packets
+        product.calculateTotalQuantityFromInputs();
+
         if (product.getQuantity() == null || product.getQuantity() < 0) {
-            return "Quantity cannot be negative.";
+            return "Total Quantity cannot be negative.";
         }
         if (product.getReorderLevel() == null || product.getReorderLevel() < 0) {
             return "Reorder Level cannot be negative.";

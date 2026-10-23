@@ -54,8 +54,16 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("Unit Price must be greater than 0 (₹).");
         }
 
+        // If packetsPerBundle is not specified yet, default gracefully to 1 (can be configured now or later)
+        if (product.getPacketsPerBundle() == null || product.getPacketsPerBundle() <= 0) {
+            product.setPacketsPerBundle(1);
+        }
+
+        // Calculate total stock from input bundles and loose packets if supplied
+        product.calculateTotalQuantityFromInputs();
+
         if (product.getQuantity() == null || product.getQuantity() < 0) {
-            throw new IllegalArgumentException("Quantity cannot be negative.");
+            throw new IllegalArgumentException("Total Quantity cannot be negative.");
         }
 
         if (product.getReorderLevel() == null || product.getReorderLevel() < 0) {
@@ -98,6 +106,7 @@ public class ProductServiceImpl implements ProductService {
         existing.setUnitPrice(productDetails.getUnitPrice());
         existing.setQuantity(productDetails.getQuantity());
         existing.setReorderLevel(productDetails.getReorderLevel());
+        existing.setPacketsPerBundle(productDetails.getPacketsPerBundle());
 
         return productRepository.save(existing);
     }

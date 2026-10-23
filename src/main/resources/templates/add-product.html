@@ -47,7 +47,7 @@
                             <div class="mb-3">
                                 <label for="productName" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control form-control-lg" id="productName"
-                                       th:field="*{productName}" placeholder="e.g. Wireless Ergonomic Mouse">
+                                       th:field="*{productName}" placeholder="e.g. Parle-G Biscuits, A4 Paper">
                             </div>
 
                             <div class="row">
@@ -55,7 +55,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="skuCode" class="form-label fw-semibold">SKU Code <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="skuCode"
-                                           th:field="*{skuCode}" placeholder="e.g. SKU-WM-101">
+                                           th:field="*{skuCode}" placeholder="e.g. SKU-PG-101">
                                     <small class="text-muted">Unique inventory stock code</small>
                                 </div>
 
@@ -63,32 +63,81 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="category" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="category"
-                                           th:field="*{category}" placeholder="e.g. Electronics, Groceries">
+                                           th:field="*{category}" placeholder="e.g. Groceries, Stationery">
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <!-- Unit Price -->
-                                <div class="col-md-4 mb-3">
-                                    <label for="unitPrice" class="form-label fw-semibold">Unit Price (₹) <span class="text-danger">*</span></label>
-                                    <input type="number" step="0.01" class="form-control" id="unitPrice"
-                                           th:field="*{unitPrice}" placeholder="e.g. 749.00">
+                            <!-- Bundle & Packaging Ratio (Specify Immediately or Later) -->
+                            <div class="p-3 mb-3 bg-light border rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-dark mb-0">📦 Bundle & Packaging Ratio</h6>
+                                    <span class="badge bg-secondary">Specify Now or Later</span>
+                                </div>
+                                <div class="row">
+                                    <!-- Packets Per Bundle -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="packetsPerBundle" class="form-label fw-semibold">
+                                            Packets in 1 Bundle
+                                        </label>
+                                        <input type="number" min="1" class="form-control" id="packetsPerBundle"
+                                               th:field="*{packetsPerBundle}" placeholder="e.g. 10">
+                                        <small class="text-muted">Specify now or later. If not bundled yet, leave as 1.</small>
+                                    </div>
+
+                                    <!-- Price per Packet -->
+                                    <div class="col-md-6 mb-2">
+                                        <label for="unitPrice" class="form-label fw-semibold">
+                                            Price per Packet (₹) <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" step="0.01" class="form-control" id="unitPrice"
+                                               th:field="*{unitPrice}" placeholder="e.g. 15.00">
+                                        <small class="text-muted">Single packet selling price in ₹</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stock Quantity: Add in Bundles, Packets, or Both! -->
+                            <div class="p-3 mb-3 bg-white border rounded shadow-sm">
+                                <h6 class="fw-bold text-primary mb-1">📊 Initial Stock (Add in Bundles, Packets, or Both)</h6>
+                                <p class="text-muted small mb-3">You can enter count by full bundles, loose packets, or both. The total stock is calculated automatically!</p>
+
+                                <div class="row">
+                                    <!-- Bundles input -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="inputBundles" class="form-label fw-semibold">
+                                            📦 Full Bundles
+                                        </label>
+                                        <input type="number" min="0" class="form-control" id="inputBundles"
+                                               th:field="*{inputBundles}" placeholder="0">
+                                        <small class="text-muted">Number of complete bundles</small>
+                                    </div>
+
+                                    <!-- Loose Packets input -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="inputPackets" class="form-label fw-semibold">
+                                            📄 Loose / Individual Packets
+                                        </label>
+                                        <input type="number" min="0" class="form-control" id="inputPackets"
+                                               th:field="*{inputPackets}" placeholder="0">
+                                        <small class="text-muted">Number of loose packets</small>
+                                    </div>
                                 </div>
 
-                                <!-- Initial Quantity -->
-                                <div class="col-md-4 mb-3">
-                                    <label for="quantity" class="form-label fw-semibold">Initial Quantity <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="quantity"
-                                           th:field="*{quantity}" placeholder="e.g. 50">
+                                <!-- Live Calculation Preview Card -->
+                                <div class="alert alert-info py-2 px-3 mb-0 d-flex justify-content-between align-items-center">
+                                    <span>✨ <strong>Total Stock:</strong> <span id="previewStockText">0 Packets</span></span>
+                                    <span class="badge bg-primary" id="previewBundleBadge">0 Bundles</span>
                                 </div>
+                            </div>
 
-                                <!-- Reorder Level -->
-                                <div class="col-md-4 mb-3">
-                                    <label for="reorderLevel" class="form-label fw-semibold">Reorder Level <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="reorderLevel"
-                                           th:field="*{reorderLevel}" placeholder="e.g. 10">
-                                    <small class="text-muted">Low stock trigger limit</small>
-                                </div>
+                            <!-- Reorder Level -->
+                            <div class="mb-3">
+                                <label for="reorderLevel" class="form-label fw-semibold">
+                                    ⚠️ Reorder Alert Level (in Total Packets) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" min="0" class="form-control" id="reorderLevel"
+                                       th:field="*{reorderLevel}" placeholder="e.g. 10">
+                                <small class="text-muted">Triggers low stock alert when total packets drop to or below this</small>
                             </div>
 
                             <!-- Buttons -->
@@ -112,5 +161,36 @@
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Real-time Bundles & Packets Stock Calculator -->
+    <script>
+        function updateStockPreview() {
+            const ppbInput = document.getElementById('packetsPerBundle').value;
+            const ppb = parseInt(ppbInput) > 0 ? parseInt(ppbInput) : 1;
+            const bundles = parseInt(document.getElementById('inputBundles').value) || 0;
+            const packets = parseInt(document.getElementById('inputPackets').value) || 0;
+
+            const totalPackets = (bundles * ppb) + packets;
+            const fullBundles = ppb > 0 ? Math.floor(totalPackets / ppb) : 0;
+            const loose = ppb > 0 ? (totalPackets % ppb) : totalPackets;
+
+            const textSpan = document.getElementById('previewStockText');
+            const badge = document.getElementById('previewBundleBadge');
+
+            if (ppb > 1) {
+                textSpan.textContent = totalPackets + ' Packets (' + fullBundles + ' Bdl + ' + loose + ' loose)';
+                badge.textContent = fullBundles + ' Bundles';
+            } else {
+                textSpan.textContent = totalPackets + ' Packets (Loose / Unbundled)';
+                badge.textContent = totalPackets + ' Packets';
+            }
+        }
+
+        document.getElementById('packetsPerBundle').addEventListener('input', updateStockPreview);
+        document.getElementById('inputBundles').addEventListener('input', updateStockPreview);
+        document.getElementById('inputPackets').addEventListener('input', updateStockPreview);
+        // Initial run
+        updateStockPreview();
+    </script>
 </body>
 </html>
