@@ -161,6 +161,16 @@
                                 <small class="text-muted">Threshold for low stock warning alert</small>
                             </div>
 
+                            <!-- Remarks / Reason for Update -->
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label fw-semibold">
+                                    📝 Update Remarks / Reason <span class="text-primary">(Captured in Log)</span>
+                                </label>
+                                <input type="text" class="form-control" id="remarks" name="remarks"
+                                       th:value="${remarks}" placeholder="e.g. Restocked 50 packets from vendor, weekly audit correction, price revised">
+                                <small class="text-muted">Will be recorded with timestamp in the product change history</small>
+                            </div>
+
                             <!-- Buttons -->
                             <div class="d-flex gap-2 mt-4">
                                 <button type="submit" class="btn btn-warning btn-lg flex-grow-1 fw-bold text-dark">

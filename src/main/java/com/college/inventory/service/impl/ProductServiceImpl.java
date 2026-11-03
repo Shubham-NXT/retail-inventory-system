@@ -1,7 +1,9 @@
 package com.college.inventory.service.impl;
 
 import com.college.inventory.entity.Product;
+import com.college.inventory.entity.ProductLog;
 import com.college.inventory.exception.ProductNotFoundException;
+import com.college.inventory.repository.ProductLogRepository;
 import com.college.inventory.repository.ProductRepository;
 import com.college.inventory.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,8 @@ import java.util.List;
  * ============================================================================
  *
  * ProductServiceImpl is the concrete implementation of the ProductService interface.
- * Every method marked with @Override fulfills the abstract contract declared by the interface.
+ * Now extended with an automated audit logging mechanism that records changes,
+ * timestamps, and user remarks whenever a product is created or updated.
  */
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -23,15 +26,11 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ProductLogRepository productLogRepository;
+
     // ==================== Validation Logic ====================
 
-    /**
-     * Enforces retail inventory business rules:
-     *   1. productName, skuCode, category cannot be null or empty.
-     *   2. unitPrice must be greater than 0 (> 0).
-     *   3. quantity must be non-negative (>= 0).
-     *   4. reorderLevel must be non-negative (>= 0).
-     */
     @Override
     public void validateProduct(Product product) {
         if (product == null) {
@@ -54,7 +53,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("Unit Price must be greater than 0 (₹).");
         }
 
-        // If packetsPerBundle is not specified yet, default gracefully to 1 (can be configured now or later)
+        // If packetsPerBundle is not specified yet, default gracefully to 1
         if (product.getPacketsPerBundle() == null || product.getPacketsPerBundle() <= 0) {
             product.setPacketsPerBundle(1);
         }
@@ -71,12 +70,35 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    // ==================== CRUD Operations ====================
+    // ==================== CRUD Operations with Logging ====================
+
+    @Override
+    public Product saveProduct(Product product, String remarks) {
+        validateProduct(product);
+        Product saved = productRepository.save(product);
+
+        // Record Initial Stock Creation Log
+        String logRemarks = (remarks != null && !remarks.trim().isEmpty()) ? remarks.trim() : "Initial stock added to inventory";
+        ProductLog log = new ProductLog(
+                saved.getId(),
+                saved.getProductName(),
+                saved.getSkuCode(),
+                "INITIAL_STOCK",
+                0,
+                saved.getQuantity(),
+                0.0,
+                saved.getUnitPrice(),
+                saved.getPacketsPerBundle(),
+                logRemarks
+        );
+        productLogRepository.save(log);
+
+        return saved;
+    }
 
     @Override
     public Product saveProduct(Product product) {
-        validateProduct(product);
-        return productRepository.save(product);
+        return saveProduct(product, "Initial stock added to inventory");
     }
 
     @Override
@@ -91,11 +113,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product updateProduct(Long id, Product productDetails) {
+    public Product updateProduct(Long id, Product productDetails, String remarks) {
         validateProduct(productDetails);
 
-        // Fetch existing product or throw custom ProductNotFoundException
+        // Fetch existing product
         Product existing = getProductById(id);
+
+        int oldQty = (existing.getQuantity() != null) ? existing.getQuantity() : 0;
+        int newQty = (productDetails.getQuantity() != null) ? productDetails.getQuantity() : 0;
+        double oldPrice = (existing.getUnitPrice() != null) ? existing.getUnitPrice() : 0.0;
+        double newPrice = (productDetails.getUnitPrice() != null) ? productDetails.getUnitPrice() : 0.0;
+
+        // Determine action classification for the audit log
+        String actionType = "DETAILS_UPDATE";
+        if (newQty != oldQty) {
+            actionType = (newQty > oldQty) ? "RESTOCK (STOCK ADDED)" : "STOCK ADJUSTMENT (REDUCED)";
+        } else if (newPrice != oldPrice) {
+            actionType = "PRICE_UPDATE";
+        }
 
         // Update inherited BaseItem fields
         existing.setProductName(productDetails.getProductName().trim());
@@ -104,18 +139,55 @@ public class ProductServiceImpl implements ProductService {
 
         // Update Product fields
         existing.setUnitPrice(productDetails.getUnitPrice());
-        existing.setQuantity(productDetails.getQuantity());
+        existing.setQuantity(newQty);
         existing.setReorderLevel(productDetails.getReorderLevel());
         existing.setPacketsPerBundle(productDetails.getPacketsPerBundle());
 
-        return productRepository.save(existing);
+        Product updated = productRepository.save(existing);
+
+        // Record Update Log with Timestamp and Remarks
+        String logRemarks = (remarks != null && !remarks.trim().isEmpty()) ? remarks.trim() : "Stock/details updated";
+        ProductLog log = new ProductLog(
+                updated.getId(),
+                updated.getProductName(),
+                updated.getSkuCode(),
+                actionType,
+                oldQty,
+                newQty,
+                oldPrice,
+                newPrice,
+                updated.getPacketsPerBundle(),
+                logRemarks
+        );
+        productLogRepository.save(log);
+
+        return updated;
+    }
+
+    @Override
+    public Product updateProduct(Long id, Product productDetails) {
+        return updateProduct(id, productDetails, "Stock/details updated");
     }
 
     @Override
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new ProductNotFoundException(id);
-        }
+        Product existing = getProductById(id);
+
+        // Record a DELETED log before removing entity
+        ProductLog log = new ProductLog(
+                existing.getId(),
+                existing.getProductName(),
+                existing.getSkuCode(),
+                "PRODUCT_DELETED",
+                existing.getQuantity(),
+                0,
+                existing.getUnitPrice(),
+                0.0,
+                existing.getPacketsPerBundle(),
+                "Product removed from inventory"
+        );
+        productLogRepository.save(log);
+
         productRepository.deleteById(id);
     }
 
@@ -145,5 +217,17 @@ public class ProductServiceImpl implements ProductService {
         return products.stream()
                 .filter(Product::isLowStock)
                 .count();
+    }
+
+    // ==================== Audit Log Retrieval ====================
+
+    @Override
+    public List<ProductLog> getLogsForProduct(Long productId) {
+        return productLogRepository.findByProductIdOrderByTimestampDesc(productId);
+    }
+
+    @Override
+    public List<ProductLog> getAllLogs() {
+        return productLogRepository.findAllByOrderByTimestampDesc();
     }
 }

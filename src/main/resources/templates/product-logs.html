@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isGlobalLog ? 'Store Activity Logs' : 'Product History Logs'}">Product History Logs</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- ===== Navigation Bar ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" th:href="@{/products}">
+                🛒 Retail Inventory Management System
+            </a>
+            <div class="navbar-nav ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light fw-semibold" th:href="@{/products}">
+                    📋 Dashboard
+                </a>
+                <a class="btn btn-primary fw-semibold" th:href="@{/products/add}">
+                    ➕ Add Product
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== Main Container ===== -->
+    <div class="container pb-5">
+
+        <!-- Single Product Context Banner (if viewing specific product) -->
+        <div th:if="${!isGlobalLog && product != null}" class="card shadow-sm border-0 mb-4 bg-white">
+            <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-dark fs-6" th:text="${product.skuCode}">SKU-001</span>
+                        <h3 class="mb-0 fw-bold text-primary" th:text="${product.productName}">Product Name</h3>
+                    </div>
+                    <p class="text-muted mb-0">
+                        Category: <strong th:text="${product.category}">Category</strong> &bull;
+                        Current Price: <strong>₹<span th:text="${#numbers.formatDecimal(product.unitPrice, 1, 2)}">0.00</span></strong> &bull;
+                        Packaging: <strong>1 Bundle = <span th:text="${product.packetsPerBundle}">1</span> Packets</strong>
+                    </p>
+                </div>
+                <div class="text-end mt-3 mt-md-0">
+                    <span class="d-block text-muted small">Current Total Stock</span>
+                    <span class="fs-4 fw-bold text-success" th:text="${product.getFormattedBundleStock()}">0 Packets</span>
+                    <div class="mt-2">
+                        <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-sm btn-warning fw-semibold text-dark">
+                            ✏️ Edit / Restock
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Log History Card -->
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    📜 <span th:text="${isGlobalLog ? 'Global Inventory Activity & Stock Logs' : 'Product Modification & Stock History'}">Product Logs</span>
+                </h5>
+                <span class="badge bg-light text-dark fs-6">
+                    Total Records: <span th:text="${#lists.size(logs)}">0</span>
+                </span>
+            </div>
+            <div class="card-body p-4">
+
+                <!-- Navigation Tabs / Links -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm">
+                            &larr; Back to Dashboard
+                        </a>
+                        <a th:if="${!isGlobalLog}" th:href="@{/products/logs}" class="btn btn-outline-info btn-sm ms-2">
+                            View All Store Logs
+                        </a>
+                    </div>
+                    <span class="text-muted small">
+                        🕒 Logs capture exact Date, Time, Stock Movement & Remarks
+                    </span>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(logs)}" class="alert alert-info text-center py-5 my-3">
+                    <h5 class="mb-1">No update logs recorded yet!</h5>
+                    <p class="text-muted mb-3">Every time a product is created or restocked, the audit log records it here.</p>
+                    <a th:href="@{/products}" class="btn btn-primary">Go to Dashboard</a>
+                </div>
+
+                <!-- Logs Table -->
+                <div th:if="${!#lists.isEmpty(logs)}" class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-secondary text-center">
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th style="min-width: 170px;">Date & Time</th>
+                                <th th:if="${isGlobalLog}">Product / SKU</th>
+                                <th>Action Type</th>
+                                <th>Stock Movement</th>
+                                <th>Unit Price</th>
+                                <th>Remarks / Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log, iterStat : ${logs}">
+                                <!-- Index -->
+                                <td class="text-center fw-bold" th:text="${iterStat.count}">1</td>
+
+                                <!-- Timestamp -->
+                                <td class="text-center font-monospace small">
+                                    📅 <strong th:text="${log.getFormattedTimestamp()}">03-11-2026 02:20:00 PM</strong>
+                                </td>
+
+                                <!-- Product Info (on Global Log page) -->
+                                <td th:if="${isGlobalLog}">
+                                    <div class="fw-semibold text-primary" th:text="${log.productName}">Product</div>
+                                    <code class="small text-muted" th:text="${log.skuCode}">SKU-001</code>
+                                </td>
+
+                                <!-- Action Badge -->
+                                <td class="text-center">
+                                    <span th:if="${log.actionType.contains('RESTOCK')}" class="badge bg-success px-2 py-1">
+                                        📥 Restock (Added)
+                                    </span>
+                                    <span th:if="${log.actionType == 'INITIAL_STOCK'}" class="badge bg-primary px-2 py-1">
+                                        ✨ Initial Stock
+                                    </span>
+                                    <span th:if="${log.actionType.contains('REDUCED')}" class="badge bg-danger px-2 py-1">
+                                        📤 Stock Reduced
+                                    </span>
+                                    <span th:if="${log.actionType == 'PRICE_UPDATE'}" class="badge bg-warning text-dark px-2 py-1">
+                                        🏷️ Price Changed
+                                    </span>
+                                    <span th:if="${log.actionType == 'DETAILS_UPDATE'}" class="badge bg-secondary px-2 py-1">
+                                        ✏️ Details Edited
+                                    </span>
+                                    <span th:if="${log.actionType == 'PRODUCT_DELETED'}" class="badge bg-dark px-2 py-1">
+                                        🗑️ Deleted
+                                    </span>
+                                </td>
+
+                                <!-- Stock Movement (Old -> New) -->
+                                <td>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <span class="text-muted" th:text="${log.oldQuantity} + ' pkts'">0 pkts</span>
+                                            &rarr;
+                                            <strong class="text-dark" th:text="${log.newQuantity} + ' pkts'">0 pkts</strong>
+                                        </span>
+                                        <span class="badge"
+                                              th:classappend="${log.changeInQuantity > 0 ? 'bg-success' : (log.changeInQuantity < 0 ? 'bg-danger' : 'bg-secondary')}"
+                                              th:text="${log.getFormattedChange()}">
+                                            +0 Pkts
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block" th:if="${log.packetsPerBundle > 1}">
+                                        (1 Bundle = <span th:text="${log.packetsPerBundle}">10</span> packets)
+                                    </small>
+                                </td>
+
+                                <!-- Unit Price -->
+                                <td class="text-end">
+                                    <div th:if="${log.oldUnitPrice != null && log.oldUnitPrice > 0 && log.oldUnitPrice != log.newUnitPrice}">
+                                        <small class="text-muted text-decoration-line-through">₹<span th:text="${#numbers.formatDecimal(log.oldUnitPrice, 1, 2)}">0.00</span></small>
+                                        &rarr;
+                                    </div>
+                                    <strong>₹<span th:text="${#numbers.formatDecimal(log.newUnitPrice, 1, 2)}">0.00</span></strong>
+                                </td>
+
+                                <!-- Remarks / Reason -->
+                                <td>
+                                    <span class="fst-italic" th:text="${log.remarks}">Remarks here</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Card Footer -->
+            <div class="card-footer bg-light d-flex justify-content-between align-items-center px-4 py-3">
+                <span class="text-muted small">Retail Inventory System &bull; Automatic Stock Audit Trail</span>
+                <a th:href="@{/products}" class="btn btn-sm btn-dark">🏠 Return to Dashboard</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

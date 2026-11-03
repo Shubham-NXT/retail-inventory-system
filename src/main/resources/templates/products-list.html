@@ -16,7 +16,10 @@
             <a class="navbar-brand fw-bold fs-4" th:href="@{/products}">
                 🛒 Retail Inventory Management System
             </a>
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light fw-semibold px-3" th:href="@{/products/logs}">
+                    📜 Stock Audit Logs
+                </a>
                 <a class="btn btn-primary fw-semibold px-3" th:href="@{/products/add}">
                     ➕ Add Product
                 </a>
@@ -132,7 +135,7 @@
                                 <th style="min-width: 170px;">Stock (Bundles & Packets)</th>
                                 <th>Total Value (₹)</th>
                                 <th>Stock Status</th>
-                                <th style="width: 220px;">Actions</th>
+                                <th style="width: 260px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,13 +197,18 @@
                                     </span>
                                 </td>
 
-                                <!-- Actions: Edit / Restock & Delete -->
+                                <!-- Actions: Logs, Edit / Restock & Delete -->
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
+                                        <a th:href="@{/products/{id}/logs(id=${product.id})}"
+                                           class="btn btn-outline-info"
+                                           title="View stock history, date/time and remarks">
+                                            📜 Logs
+                                        </a>
                                         <a th:href="@{/products/edit/{id}(id=${product.id})}"
                                            class="btn btn-outline-primary"
                                            title="Edit details or restock quantity">
-                                            ✏️ Edit / Restock
+                                            ✏️ Edit
                                         </a>
                                         <a th:href="@{/products/delete/{id}(id=${product.id})}"
                                            class="btn btn-outline-danger"

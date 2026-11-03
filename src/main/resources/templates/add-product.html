@@ -140,6 +140,16 @@
                                 <small class="text-muted">Triggers low stock alert when total packets drop to or below this</small>
                             </div>
 
+                            <!-- Remarks / Notes -->
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label fw-semibold">
+                                    📝 Remarks / Stock Notes (Optional)
+                                </label>
+                                <input type="text" class="form-control" id="remarks" name="remarks"
+                                       th:value="${remarks}" placeholder="e.g. Opening stock received from vendor">
+                                <small class="text-muted">Will be recorded with date & time in the product audit log</small>
+                            </div>
+
                             <!-- Buttons -->
                             <div class="d-flex gap-2 mt-4">
                                 <button type="submit" class="btn btn-success btn-lg flex-grow-1">

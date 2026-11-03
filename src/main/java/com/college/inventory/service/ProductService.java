@@ -1,6 +1,7 @@
 package com.college.inventory.service;
 
 import com.college.inventory.entity.Product;
+import com.college.inventory.entity.ProductLog;
 
 import java.util.List;
 
@@ -10,16 +11,17 @@ import java.util.List;
  * ============================================================================
  *
  * ProductService is an interface representing the abstract contract of all
- * inventory business logic.
- *
- * Benefits:
- *   - Loose coupling: Controller interacts exclusively with the interface.
- *   - Extensibility: Concrete implementations can be swapped without touching controllers.
+ * inventory business logic and audit logging operations.
  */
 public interface ProductService {
 
     /**
-     * Persists a new product record to the database after validation.
+     * Persists a new product record and records an INITIAL_STOCK log.
+     */
+    Product saveProduct(Product product, String remarks);
+
+    /**
+     * Overloaded saveProduct for default remarks.
      */
     Product saveProduct(Product product);
 
@@ -35,12 +37,17 @@ public interface ProductService {
     Product getProductById(Long id);
 
     /**
-     * Updates an existing product's details and restocks quantity.
+     * Updates an existing product's details / restocks quantity and records an audit log.
+     */
+    Product updateProduct(Long id, Product product, String remarks);
+
+    /**
+     * Overloaded updateProduct for backward compatibility.
      */
     Product updateProduct(Long id, Product product);
 
     /**
-     * Deletes a product from inventory by ID.
+     * Deletes a product from inventory by ID and records a deletion log.
      */
     void deleteProduct(Long id);
 
@@ -50,16 +57,12 @@ public interface ProductService {
     List<Product> searchProducts(String keyword);
 
     /**
-     * Enforces retail inventory business rules:
-     *   - productName, skuCode, category cannot be blank
-     *   - unitPrice > 0
-     *   - quantity >= 0
-     *   - reorderLevel >= 0
+     * Enforces retail inventory business rules.
      */
     void validateProduct(Product product);
 
     /**
-     * Computes the cumulative monetary valuation of all displayed products.
+     * Computes cumulative monetary valuation of all displayed products.
      */
     Double calculateTotalInventoryValue(List<Product> products);
 
@@ -67,4 +70,14 @@ public interface ProductService {
      * Counts how many products are at or below their reorder threshold.
      */
     long countLowStockProducts(List<Product> products);
+
+    /**
+     * Fetches update and stock history logs for a specific product.
+     */
+    List<ProductLog> getLogsForProduct(Long productId);
+
+    /**
+     * Fetches all inventory logs across the system.
+     */
+    List<ProductLog> getAllLogs();
 }

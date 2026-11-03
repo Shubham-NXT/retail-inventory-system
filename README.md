@@ -40,6 +40,11 @@ Designed for college academic evaluation (**FA 1 & FA 2**), implementing clean l
   - **Polymorphism / Method Overriding:** `ProductServiceImpl` provides concrete implementations of the interface methods (`@Override`).
 - **Search Module:** Case-insensitive search bar filtering inventory by **Product Name** or **Category** using custom JPQL (`GET /products?keyword=...`).
 - **Edit & Restock Module:** Update item pricing, reorder thresholds, or increment warehouse stock (`GET /products/edit/{id}` & `POST /products/update/{id}`).
+- **Stock Audit Trail & History Logs:**
+  - Automatically captures exact **Date & Time** (`timestamp`) on product creation, restock, edit, or deletion.
+  - Custom **Remarks / Reason** field (e.g., *"Vendor batch #402 received"*, *"Damaged goods return"*).
+  - Tracks previous stock $\rightarrow$ new stock and exact quantity delta (`+20 Pkts`, `-5 Pkts`).
+  - View per-product timeline (`GET /products/{id}/logs`) or global store activity (`GET /products/logs`).
 - **Delete Module:** Remove discontinued products with client-side JavaScript confirmation dialog (`GET /products/delete/{id}`).
 - **Input Validation:**
   - Validates that `productName`, `skuCode`, and `category` are not blank.
