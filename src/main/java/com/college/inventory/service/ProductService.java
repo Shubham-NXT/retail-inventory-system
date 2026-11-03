@@ -80,4 +80,19 @@ public interface ProductService {
      * Fetches all inventory logs across the system.
      */
     List<ProductLog> getAllLogs();
+
+    /**
+     * Deletes a single audit log entry by its ID.
+     */
+    void deleteLogById(Long logId);
+
+    /**
+     * Deletes all audit logs associated with a specific product.
+     */
+    void deleteLogsByProductId(Long productId);
+
+    /**
+     * Clears all audit logs across the entire store.
+     */
+    void clearAllLogs();
 }

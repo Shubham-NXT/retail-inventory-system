@@ -68,25 +68,41 @@
             </div>
             <div class="card-body p-4">
 
-                <!-- Navigation Tabs / Links -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
+                <!-- Navigation Toolbar & Bulk Actions -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div class="d-flex gap-2">
                         <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm">
                             &larr; Back to Dashboard
                         </a>
-                        <a th:if="${!isGlobalLog}" th:href="@{/products/logs}" class="btn btn-outline-info btn-sm ms-2">
+                        <a th:if="${!isGlobalLog}" th:href="@{/products/logs}" class="btn btn-outline-info btn-sm">
                             View All Store Logs
                         </a>
                     </div>
-                    <span class="text-muted small">
-                        🕒 Logs capture exact Date, Time, Stock Movement & Remarks
-                    </span>
+
+                    <!-- Bulk Delete Buttons -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Clear Single Product's Logs -->
+                        <a th:if="${!isGlobalLog && !#lists.isEmpty(logs)}"
+                           th:href="@{/products/{id}/logs/clear(id=${product.id})}"
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('⚠️ Are you sure you want to delete ALL log history for this product?');">
+                            🗑️ Clear This Product's Logs
+                        </a>
+
+                        <!-- Clear All Store Logs -->
+                        <a th:if="${isGlobalLog && !#lists.isEmpty(logs)}"
+                           th:href="@{/products/logs/clear}"
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('⚠️ WARNING: This will permanently delete ALL audit logs across the entire store! Are you sure?');">
+                            🗑️ Clear All Store Logs
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Empty State -->
                 <div th:if="${#lists.isEmpty(logs)}" class="alert alert-info text-center py-5 my-3">
                     <h5 class="mb-1">No update logs recorded yet!</h5>
-                    <p class="text-muted mb-3">Every time a product is created or restocked, the audit log records it here.</p>
+                    <p class="text-muted mb-3">Logs are recorded automatically whenever a product is added, edited, or restocked.</p>
                     <a th:href="@{/products}" class="btn btn-primary">Go to Dashboard</a>
                 </div>
 
@@ -102,6 +118,7 @@
                                 <th>Stock Movement</th>
                                 <th>Unit Price</th>
                                 <th>Remarks / Reason</th>
+                                <th style="width: 90px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -173,6 +190,16 @@
                                 <!-- Remarks / Reason -->
                                 <td>
                                     <span class="fst-italic" th:text="${log.remarks}">Remarks here</span>
+                                </td>
+
+                                <!-- Single Log Delete Button -->
+                                <td class="text-center">
+                                    <a th:href="${isGlobalLog} ? @{/products/logs/delete/{logId}(logId=${log.id})} : @{/products/logs/delete/{logId}(logId=${log.id}, productId=${product.id})}"
+                                       class="btn btn-outline-danger btn-sm py-0 px-2"
+                                       onclick="return confirm('Delete this log entry?');"
+                                       title="Delete this single log entry">
+                                        🗑️ Delete
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

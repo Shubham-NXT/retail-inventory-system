@@ -225,4 +225,40 @@ public class ProductController {
 
         return "product-logs";
     }
+
+    // ==================== 6. Log Deletion Endpoints ====================
+
+    /**
+     * GET /products/logs/delete/{logId}?productId=...
+     * Deletes a single audit log entry and returns to the originating logs view.
+     */
+    @GetMapping("/products/logs/delete/{logId}")
+    public String deleteSingleLog(@PathVariable("logId") Long logId,
+                                  @RequestParam(value = "productId", required = false) Long productId) {
+        productService.deleteLogById(logId);
+        if (productId != null) {
+            return "redirect:/products/" + productId + "/logs";
+        }
+        return "redirect:/products/logs";
+    }
+
+    /**
+     * GET /products/{id}/logs/clear
+     * Purges all audit logs for a single product.
+     */
+    @GetMapping("/products/{id}/logs/clear")
+    public String clearProductLogs(@PathVariable("id") Long id) {
+        productService.deleteLogsByProductId(id);
+        return "redirect:/products/" + id + "/logs";
+    }
+
+    /**
+     * GET /products/logs/clear
+     * Clears all audit logs across the entire store.
+     */
+    @GetMapping("/products/logs/clear")
+    public String clearAllLogs() {
+        productService.clearAllLogs();
+        return "redirect:/products/logs";
+    }
 }

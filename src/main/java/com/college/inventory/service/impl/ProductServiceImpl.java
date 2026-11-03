@@ -17,8 +17,8 @@ import java.util.List;
  * ============================================================================
  *
  * ProductServiceImpl is the concrete implementation of the ProductService interface.
- * Now extended with an automated audit logging mechanism that records changes,
- * timestamps, and user remarks whenever a product is created or updated.
+ * Implements audit logging along with granular log deletion capabilities
+ * (delete single log, delete all logs of a product, or clear all logs).
  */
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -229,5 +229,24 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductLog> getAllLogs() {
         return productLogRepository.findAllByOrderByTimestampDesc();
+    }
+
+    // ==================== Audit Log Deletions ====================
+
+    @Override
+    public void deleteLogById(Long logId) {
+        if (productLogRepository.existsById(logId)) {
+            productLogRepository.deleteById(logId);
+        }
+    }
+
+    @Override
+    public void deleteLogsByProductId(Long productId) {
+        productLogRepository.deleteByProductId(productId);
+    }
+
+    @Override
+    public void clearAllLogs() {
+        productLogRepository.deleteAll();
     }
 }
